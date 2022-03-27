@@ -1,0 +1,4 @@
+{
+  "DbConnectionString": "host=backend-db user=postgres password=backendDbPassword dbname=postgres port=5432",
+  "BindAddress": ":8000"
+}
