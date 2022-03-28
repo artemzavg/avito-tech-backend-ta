@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"net/http"
-	"strings"
 )
 
 type Handler struct {
@@ -24,7 +23,7 @@ type request struct {
 	Title       string   `json:"Title"`
 	Description string   `json:"Description"`
 	Price       uint64   `json:"Price"`
-	AdvertLinks []string `json:"AdvertLinks"`
+	AdvertLinks []string `json:"Photos"`
 }
 
 type response struct {
@@ -32,31 +31,31 @@ type response struct {
 	Code uint `json:"Code"`
 }
 
-func (handler *Handler) HandlerFunc(w http.ResponseWriter, r *http.Request) {
-	var requestBody request
+func (handler Handler) HandlerFunc(w http.ResponseWriter, r *http.Request) {
+	var request request
 
-	err := decodeRequest(w, r, &requestBody)
+	err := decodeRequest(w, r, &request)
 	if err != nil {
 		return
 	}
 
-	log.Println(fmt.Sprintf("Got createAdvertRequest %v", requestBody))
+	log.Println(fmt.Sprintf("Got createAdvertRequest %v", request))
 
-	if !requestBody.isValid(w) {
+	if !request.isValid(w) {
 		return
 	}
 
-	links := dbContext.GetLinks(requestBody.AdvertLinks)
+	photos := dbContext.Photos(request.AdvertLinks)
 	advert := dbContext.Advert{
-		Title:       requestBody.Title,
-		Description: requestBody.Description,
-		Price:       requestBody.Price,
-		AdvertLinks: links,
+		Title:       request.Title,
+		Description: request.Description,
+		Price:       request.Price,
+		Photos:      photos,
 	}
 	result := handler.Db.Create(&advert)
 	response := response{Id: advert.ID, Code: 0}
 	if result.Error != nil {
-		log.Println(fmt.Sprintf("Error in creating model. %v", err))
+		log.Println(fmt.Sprintf("Error in creating model. %v", result.Error))
 		response.Code = 1
 	}
 
@@ -78,12 +77,14 @@ func decodeRequest(w http.ResponseWriter, r *http.Request, requestBody *request)
 
 func (requestBody *request) isValid(w http.ResponseWriter) bool {
 	if !isStringValid(requestBody.Title, TitleMaxLen) {
-		processInvalidString(w, "title", TitleMaxLen)
+		log.Println("Error! Title is invalid")
+		http.Error(w, fmt.Sprintf("Title is invalid. It should not be empty and should be less than %d symbols length", TitleMaxLen), http.StatusBadRequest)
 		return false
 	}
 
 	if !isStringValid(requestBody.Description, DescriptionMaxLen) {
-		processInvalidString(w, "description", DescriptionMaxLen)
+		log.Println("Error! Description is invalid")
+		http.Error(w, fmt.Sprintf("Description is invalid. It should not be empty and should be less than %d symbols length", DescriptionMaxLen), http.StatusBadRequest)
 		return false
 	}
 
@@ -93,11 +94,6 @@ func (requestBody *request) isValid(w http.ResponseWriter) bool {
 		return false
 	}
 	return true
-}
-
-func processInvalidString(w http.ResponseWriter, name string, maxLen int) {
-	log.Println("Error! Title is invalid")
-	http.Error(w, fmt.Sprintf("%s is invalid. It should not be empty and should be less than %d symbols length", strings.ToTitle(name), maxLen), http.StatusBadRequest)
 }
 
 func isStringValid(title string, maxLen int) bool {

@@ -3,6 +3,7 @@ package backend
 import (
 	"github.com/artemzavg/avito-tech-backend-ta/internal/app/backend/dbContext"
 	"github.com/artemzavg/avito-tech-backend-ta/internal/app/backend/handlers/createAdvert"
+	"github.com/artemzavg/avito-tech-backend-ta/internal/app/backend/handlers/getAdvert"
 	"gorm.io/gorm"
 	"log"
 	"net/http"
@@ -26,6 +27,7 @@ func (server *ApiServer) Start() error {
 	log.Println("Starting API server...")
 
 	server.serverMux.HandleFunc("/create", createAdvert.Handler{Db: server.db}.HandlerFunc)
+	server.serverMux.HandleFunc("/get", getAdvert.Handler{Db: server.db}.HandlerFunc)
 
 	return http.ListenAndServe(server.config.BindAddr, server.serverMux)
 }
