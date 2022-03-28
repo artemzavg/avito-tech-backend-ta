@@ -11,10 +11,10 @@ type Advert struct {
 	Title       string
 	Description string
 	Price       uint64
-	AdvertLinks []PhotoLink
+	Photos      []Photo
 }
 
-type PhotoLink struct {
+type Photo struct {
 	gorm.Model
 	Link     string
 	AdvertId uint
@@ -31,7 +31,7 @@ func NewContext(connectionString string) *gorm.DB {
 		log.Fatal(err)
 	}
 
-	err = db.AutoMigrate(&PhotoLink{})
+	err = db.AutoMigrate(&Photo{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,12 +39,22 @@ func NewContext(connectionString string) *gorm.DB {
 	return db
 }
 
-func GetLinks(links []string) []PhotoLink {
-	photoLinks := make([]PhotoLink, len(links), len(links))
+func Photos(links []string) []Photo {
+	photoLinks := make([]Photo, len(links), len(links))
 
 	for i, link := range links {
-		photoLinks[i] = PhotoLink{Link: link}
+		photoLinks[i] = Photo{Link: link}
 	}
 
 	return photoLinks
+}
+
+func Links(photos []Photo) []string {
+	links := make([]string, len(photos), len(photos))
+
+	for i, link := range photos {
+		links[i] = link.Link
+	}
+
+	return links
 }

@@ -2,10 +2,10 @@ version: "3.9"
 
 services:
   backend-db:
-    container_name: backend-dbContext
+    container_name: backend-db
     image: postgres:alpine
     volumes:
-      - dbContext-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     networks:
       - backend-net
     restart: unless-stopped
