@@ -24,7 +24,7 @@ func main() {
 	}
 
 	config := backend.NewConfig(configFile)
-	server := backend.New(config)
+	server := backend.NewServer(config)
 
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
